@@ -34,12 +34,15 @@ def vatify():
 
         #Filter out unnescesarry rows
         shopify_df = shopify_df.loc[shopify_df['Subtotal'].notna()]
+        shopify_df = shopify_df.loc[shopify_df['Financial Status'] != "refunded"]
 
         #Create new Dataframe to be exported
         vatify_df = pd.DataFrame()
         vatify_df['Invoice Number'] = shopify_df['Name']
-        vatify_df['Transaction Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%d/%m/%Y")
-        vatify_df['Invoice Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%d/%m/%Y")
+        # vatify_df['Transaction Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%d/%m/%Y")
+        vatify_df['Transaction Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%Y/%m/%d")
+        # vatify_df['Invoice Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%d/%m/%Y")
+        vatify_df['Invoice Date'] = pd.to_datetime(shopify_df['Paid at']).dt.strftime("%Y/%m/%d")
         vatify_df['Currency'] = shopify_df['Currency']
         vatify_df['Transaction type'] = 'Sale'
         vatify_df['Country Dispatch'] = 'GB'
@@ -57,7 +60,7 @@ def vatify():
         vatify_df['Document Code'] = ''
         vatify_df['Example index - please delete this column before submitting to Avalara'] = shopify_df['Taxes'].apply(lambda x: '' if x != 0 else 'Needs Review!')
         vatify_df = vatify_df.loc[vatify_df['Country Arrival'] != 'GB']
-        vatify_df = vatify_df.loc[vatify_df['Taxable Basis'] > 180]
+        vatify_df = vatify_df.loc[vatify_df['Taxable Basis'] < 180]
         mask = vatify_df['Value VAT'] != 0
         vatify_df.loc[mask, 'Transaction type'] = 'IOSS'
         vatify_df.fillna('', inplace=True)
